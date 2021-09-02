@@ -15,7 +15,8 @@ try:
         camera.resolution = (720, 480)
         cam = NetworkPiCam(camera, cam_name, port)
         logger.debug("Attempting to connect")
-        cam.connect()
+        while not cam.connect(timeout=3):
+            pass
         logger.info("Streaming images")
         while cam.is_connected:
             cam.send_image()

@@ -35,17 +35,21 @@ class NetworkPiCam:
         self._connection = None
         self._connected = False
 
-    def connect(self) -> bool:
+    def connect(self, timeout: int = 30) -> bool:
         """
         Actually connect to the server.
 
+        :param timeout: Wait up to x amount of seconds before giving up.
         :return: A bool on whether we successfully connected or not.
         """
         logger.debug(f"Advertising as PiCam named {self._cam_name}")
-        service = nw0.advertise(self._cam_name)
-        self._client_socket = socket()
+        try:
+            service = nw0.advertise(self._cam_name, ttl_s=timeout)
+        except nw0.core.SocketTimedOutError:
+            return False
         logger.debug(f"Opening socket on port {self._port}")
         address = nw0.wait_for_message_from(service, autoreply=True)
+        self._client_socket = socket()
         self._client_socket.connect((address, self._port))
         self._connection = self._client_socket.makefile("wb")
         logger.info(f"Successfully connected to {address}:{self._port}")
@@ -64,6 +68,12 @@ class NetworkPiCam:
         try:
             img_stream = BytesIO()
             self._cam.capture(img_stream, "jpeg")
+            img_stream.seek(0)
+            img_pil = Image.open(img_stream)
+            img_pil = img_pil.rotate(180)
+            img_stream.seek(0)
+            img_stream.truncate()
+            img_pil.save(img_stream, "jpeg")
             self._connection.write(struct.pack("<L", img_stream.tell()))
             self._connection.flush()
             img_stream.seek(0)
