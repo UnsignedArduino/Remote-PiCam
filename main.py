@@ -1,5 +1,22 @@
 import logging
 
+import picamera
+
 from create_logger import create_logger
+from picam import NetworkPiCam
 
 logger = create_logger(name=__name__, level=logging.DEBUG)
+
+cam_name = "picam"
+port = 7896
+
+try:
+    with picamera.PiCamera() as camera:
+        cam = NetworkPiCam(camera, cam_name, port)
+        logger.debug("Attempting to connect")
+        cam.connect()
+        logger.info("Streaming images")
+        while cam.is_connected:
+            cam.send_image()
+finally:
+    logger.warning("Disconnecting")
