@@ -12,6 +12,7 @@ port = 7896
 
 try:
     with picamera.PiCamera() as camera:
+        camera.resolution = (720, 480)
         cam = NetworkPiCam(camera, cam_name, port)
         logger.debug("Attempting to connect")
         cam.connect()
