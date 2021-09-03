@@ -56,6 +56,11 @@ class NetworkPiCam:
                 "min": 0,
                 "max": 100,
                 "value": 50
+            },
+            "contrast": {
+                "min": -100,
+                "max": 100,
+                "value": 0
             }
         }
 
@@ -129,6 +134,7 @@ class NetworkPiCam:
                 self._cam.resolution = self.settings["resolution"]
                 self._cam.awb_mode = self.settings["awb_mode"]["selected"]
                 self._cam.brightness = self.settings["brightness"]["value"]
+                self._cam.contrast = self.settings["contrast"]["value"]
             except Exception:
                 logger.exception(f"Error while parsing settings!")
                 nw0.send_reply_to(self._server_address, (False, self.settings))
