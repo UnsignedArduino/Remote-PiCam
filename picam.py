@@ -36,7 +36,6 @@ class NetworkPiCam:
         self._connection = None
         self._connected = False
         self.settings = {
-            "resolution": (720, 480),
             "awb_mode": {
                 "selected": "auto",
                 "available": [
@@ -88,7 +87,13 @@ class NetworkPiCam:
                     "deinterlace1",
                     "deinterlace2"
                 ]
-            }
+            },
+            "resolution": (720, 480),
+            "saturation": {
+                "min": -100,
+                "max": 100,
+                "value": 0
+            },
         }
 
     def connect(self, timeout: int = 30) -> bool:
@@ -158,11 +163,12 @@ class NetworkPiCam:
         if result is not None:
             self.settings = result
             try:
-                self._cam.resolution = self.settings["resolution"]
                 self._cam.awb_mode = self.settings["awb_mode"]["selected"]
                 self._cam.brightness = self.settings["brightness"]["value"]
                 self._cam.contrast = self.settings["contrast"]["value"]
                 self._cam.image_effect = self.settings["effect"]["selected"]
+                self._cam.resolution = self.settings["resolution"]
+                self._cam.saturation = self.settings["saturation"]["value"]
             except Exception:
                 logger.exception(f"Error while parsing settings!")
                 nw0.send_reply_to(self._server_address, (False, self.settings))
