@@ -32,8 +32,12 @@ class NetworkPiCam:
         self._cam_name = cam_name
         self._port = port
         self._client_socket = None
+        self._server_address = None
         self._connection = None
         self._connected = False
+        self.settings = {
+            "resolution": (720, 480)
+        }
 
     def connect(self, timeout: int = 30) -> bool:
         """
@@ -49,6 +53,7 @@ class NetworkPiCam:
             return False
         logger.debug(f"Opening socket on port {self._port}")
         address = nw0.wait_for_message_from(service, autoreply=True)
+        self._server_address = service
         self._client_socket = socket()
         self._client_socket.connect((address, self._port))
         self._connection = self._client_socket.makefile("wb")
@@ -89,6 +94,24 @@ class NetworkPiCam:
                 self._client_socket.close()
                 self._connected = False
         return False
+
+    def service_settings(self) -> None:
+        """
+        Check for requests to change the settings and apply them if needed.
+
+        :return: None.
+        """
+        result = nw0.wait_for_message_from(self._server_address, wait_for_s=0)
+        if result is not None:
+            self.settings = result
+            try:
+                self._cam.resolution = self.settings["resolution"]
+            except Exception:
+                logger.exception(f"Error while parsing settings!")
+                nw0.send_reply_to(self._server_address, (False, self.settings))
+            else:
+                logger.info("Successfully set new settings!")
+                nw0.send_reply_to(self._server_address, (True, self.settings))
 
     def disconnect(self) -> None:
         """

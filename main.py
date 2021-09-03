@@ -20,5 +20,6 @@ try:
         logger.info("Streaming images")
         while cam.is_connected:
             cam.send_image()
+            cam.service_settings()
 finally:
     logger.warning("Disconnecting")
