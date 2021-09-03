@@ -72,7 +72,7 @@ class NetworkPiCam:
             raise ValueError("Not connected")
         try:
             img_stream = BytesIO()
-            self._cam.capture(img_stream, "jpeg")
+            self._cam.capture(img_stream, "jpeg", use_video_port=True)
             img_stream.seek(0)
             img_pil = Image.open(img_stream)
             img_pil = img_pil.rotate(180)
