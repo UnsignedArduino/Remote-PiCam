@@ -61,6 +61,33 @@ class NetworkPiCam:
                 "min": -100,
                 "max": 100,
                 "value": 0
+            },
+            "effect": {
+                "selected": "none",
+                "available": [
+                    "none",
+                    "negative",
+                    "solarize",
+                    "sketch",
+                    "denoise",
+                    "emboss",
+                    "oilpaint",
+                    "hatch",
+                    "gpen",
+                    "pastel",
+                    "watercolor",
+                    "film",
+                    "blur",
+                    "saturation",
+                    "colorswap",
+                    "washedout",
+                    "posterise",
+                    "colorpoint",
+                    "colorbalance",
+                    "cartoon",
+                    "deinterlace1",
+                    "deinterlace2"
+                ]
             }
         }
 
@@ -135,6 +162,7 @@ class NetworkPiCam:
                 self._cam.awb_mode = self.settings["awb_mode"]["selected"]
                 self._cam.brightness = self.settings["brightness"]["value"]
                 self._cam.contrast = self.settings["contrast"]["value"]
+                self._cam.image_effect = self.settings["effect"]["selected"]
             except Exception:
                 logger.exception(f"Error while parsing settings!")
                 nw0.send_reply_to(self._server_address, (False, self.settings))
