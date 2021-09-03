@@ -36,7 +36,22 @@ class NetworkPiCam:
         self._connection = None
         self._connected = False
         self.settings = {
-            "resolution": (720, 480)
+            "resolution": (720, 480),
+            "awb_mode": {
+                "selected": "auto",
+                "available": [
+                    "off",
+                    "auto",
+                    "sunlight",
+                    "cloudy",
+                    "shade",
+                    "tungsten",
+                    "fluorescent",
+                    "incandescent",
+                    "flash",
+                    "horizon"
+                ]
+            }
         }
 
     def connect(self, timeout: int = 30) -> bool:
@@ -52,7 +67,8 @@ class NetworkPiCam:
         except nw0.core.SocketTimedOutError:
             return False
         logger.debug(f"Opening socket on port {self._port}")
-        address = nw0.wait_for_message_from(service, autoreply=True)
+        address = nw0.wait_for_message_from(service)
+        nw0.send_reply_to(service, self.settings)
         self._server_address = service
         self._client_socket = socket()
         self._client_socket.connect((address, self._port))
@@ -106,6 +122,7 @@ class NetworkPiCam:
             self.settings = result
             try:
                 self._cam.resolution = self.settings["resolution"]
+                self._cam.awb_mode = self.settings["awb_mode"]["selected"]
             except Exception:
                 logger.exception(f"Error while parsing settings!")
                 nw0.send_reply_to(self._server_address, (False, self.settings))
