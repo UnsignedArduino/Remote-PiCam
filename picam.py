@@ -88,6 +88,19 @@ class NetworkPiCam:
                     "deinterlace2"
                 ]
             },
+            "iso": {
+                "selected": 0,
+                "available": [
+                    0,
+                    100,
+                    200,
+                    320,
+                    400,
+                    500,
+                    640,
+                    800
+                ]
+            },
             "resolution": {
                 "selected": (720, 480),
                 "available": [
@@ -260,6 +273,7 @@ class NetworkPiCam:
                 self._cam.brightness = self.settings["brightness"]["value"]
                 self._cam.contrast = self.settings["contrast"]["value"]
                 self._cam.image_effect = self.settings["effect"]["selected"]
+                self._cam.iso = self.settings["iso"]["selected"]
                 self._cam.resolution = self.settings["resolution"]["selected"]
                 self._cam.saturation = self.settings["saturation"]["value"]
             except Exception:
