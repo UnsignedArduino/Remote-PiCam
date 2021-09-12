@@ -8,6 +8,7 @@ import networkzero as nw0
 from PIL import Image
 
 from create_logger import create_logger
+from PCA9685 import PCA9685
 import picamera
 
 logger = create_logger(name=__name__, level=logging.DEBUG)
@@ -34,6 +35,7 @@ class NetworkPiCam:
         self._client_socket = None
         self._server_address = None
         self._connection = None
+        self._driver = None
         self._connected = False
         self.settings = {
             "awb_mode": {
@@ -197,6 +199,18 @@ class NetworkPiCam:
                 "max": 100,
                 "value": 0
             },
+            "servos": {
+                "pan": {
+                    "min": 0,
+                    "max": 180,
+                    "value": 90
+                },
+                "tilt": {
+                    "min": 0,
+                    "max": 60,
+                    "value": 30
+                }
+            }
         }
 
     def connect(self, timeout: int = 30) -> bool:
@@ -214,6 +228,9 @@ class NetworkPiCam:
         logger.debug(f"Opening socket on port {self._port}")
         address = nw0.wait_for_message_from(service)
         nw0.send_reply_to(service, self.settings)
+        self._driver = PCA9685()
+        self._driver.setPWMFreq(50)
+        self.write_settings()
         self._server_address = service
         self._client_socket = socket()
         self._client_socket.connect((address, self._port))
@@ -252,8 +269,7 @@ class NetworkPiCam:
         finally:
             if failed:
                 try:
-                    self._connection.close()
-                    self._client_socket.close()
+                    self.disconnect()
                 except OSError:
                     pass
                 self._connected = False
@@ -269,19 +285,29 @@ class NetworkPiCam:
         if result is not None:
             self.settings = result
             try:
-                self._cam.awb_mode = self.settings["awb_mode"]["selected"]
-                self._cam.brightness = self.settings["brightness"]["value"]
-                self._cam.contrast = self.settings["contrast"]["value"]
-                self._cam.image_effect = self.settings["effect"]["selected"]
-                self._cam.iso = self.settings["iso"]["selected"]
-                self._cam.resolution = self.settings["resolution"]["selected"]
-                self._cam.saturation = self.settings["saturation"]["value"]
+                self.write_settings()
             except Exception:
                 logger.exception(f"Error while parsing settings!")
                 nw0.send_reply_to(self._server_address, (False, self.settings))
             else:
                 logger.info("Successfully set new settings!")
                 nw0.send_reply_to(self._server_address, (True, self.settings))
+
+    def write_settings(self) -> None:
+        """
+        Update the settings in the camera and servos.
+
+        :return: None.
+        """
+        self._cam.awb_mode = self.settings["awb_mode"]["selected"]
+        self._cam.brightness = self.settings["brightness"]["value"]
+        self._cam.contrast = self.settings["contrast"]["value"]
+        self._cam.image_effect = self.settings["effect"]["selected"]
+        self._cam.iso = self.settings["iso"]["selected"]
+        self._cam.resolution = self.settings["resolution"]["selected"]
+        self._cam.saturation = self.settings["saturation"]["value"]
+        self._driver.setRotationAngle(1, self.settings["servos"]["pan"]["value"])
+        self._driver.setRotationAngle(0, self.settings["servos"]["tilt"]["value"])
 
     def disconnect(self) -> None:
         """
@@ -293,6 +319,7 @@ class NetworkPiCam:
         self._connection.close()
         self._client_socket.close()
         self._connected = False
+        self._driver.exit_PCA9685()
 
     @property
     def is_connected(self) -> bool:
