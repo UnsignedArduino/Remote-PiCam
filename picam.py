@@ -19,7 +19,8 @@ class NetworkPiCam:
     A class to manage connecting and sending images as a PiCam.
     """
 
-    def __init__(self, cam: picamera, cam_name: str, port: int):
+    def __init__(self, cam: picamera, cam_name: str, port: int,
+                 pan_tilt: bool = True):
         """
         Initiate the PiCam. This does not actually connect to the PiCam until
         you call connect().
@@ -28,10 +29,14 @@ class NetworkPiCam:
         :param cam_name: The name of the PiCamera. This is used by the other
          end to discover the camera.
         :param port: The port to connect to
+        :param pan_tilt: Whether to pan/tilt or not. Defaults to True.
         """
         self._cam = cam
         self._cam_name = cam_name
         self._port = port
+        self._pan_tilting = pan_tilt
+        if not self._pan_tilting:
+            logger.warning("Not using pan/tilt!")
         self._client_socket = None
         self._server_address = None
         self._connection = None
@@ -283,6 +288,19 @@ class NetworkPiCam:
         """
         result = nw0.wait_for_message_from(self._server_address, wait_for_s=0)
         if result is not None:
+            if not self._pan_tilting:
+                if self.settings["servos"]["pan"]["value"] != \
+                        result["servos"]["pan"]["value"]:
+                    logger.error("Pan/tilting disabled!")
+                    nw0.send_reply_to(self._server_address,
+                                      (False, self.settings))
+                    return
+                if self.settings["servos"]["tilt"]["value"] != \
+                        result["servos"]["tilt"]["value"]:
+                    logger.error("Pan/tilting disabled!")
+                    nw0.send_reply_to(self._server_address,
+                                      (False, self.settings))
+                    return
             self.settings = result
             try:
                 self.write_settings()

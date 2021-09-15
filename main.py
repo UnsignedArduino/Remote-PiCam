@@ -30,7 +30,8 @@ try:
     with picamera.PiCamera() as camera:
         camera.resolution = (720, 480)
         cam = NetworkPiCam(camera, settings["camera"]["name"],
-                           settings["camera"]["port"])
+                           settings["camera"]["port"],
+                           settings["pan_tilt"]["enable"])
         logger.debug("Attempting to connect")
         while not cam.connect(timeout=3):
             pass
