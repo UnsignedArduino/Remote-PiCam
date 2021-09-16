@@ -205,6 +205,7 @@ class NetworkPiCam:
                 "value": 0
             },
             "servos": {
+                "enable": self._pan_tilting,
                 "pan": {
                     "min": 0,
                     "max": 180,
@@ -233,8 +234,9 @@ class NetworkPiCam:
         logger.debug(f"Opening socket on port {self._port}")
         address = nw0.wait_for_message_from(service)
         nw0.send_reply_to(service, self.settings)
-        self._driver = PCA9685()
-        self._driver.setPWMFreq(50)
+        if self._pan_tilting:
+            self._driver = PCA9685()
+            self._driver.setPWMFreq(50)
         self.write_settings()
         self._server_address = service
         self._client_socket = socket()
@@ -324,8 +326,9 @@ class NetworkPiCam:
         self._cam.iso = self.settings["iso"]["selected"]
         self._cam.resolution = self.settings["resolution"]["selected"]
         self._cam.saturation = self.settings["saturation"]["value"]
-        self._driver.setRotationAngle(1, self.settings["servos"]["pan"]["value"])
-        self._driver.setRotationAngle(0, self.settings["servos"]["tilt"]["value"])
+        if self._pan_tilting:
+            self._driver.setRotationAngle(1, self.settings["servos"]["pan"]["value"])
+            self._driver.setRotationAngle(0, self.settings["servos"]["tilt"]["value"])
 
     def disconnect(self) -> None:
         """
@@ -337,7 +340,8 @@ class NetworkPiCam:
         self._connection.close()
         self._client_socket.close()
         self._connected = False
-        self._driver.exit_PCA9685()
+        if self._pan_tilting:
+            self._driver.exit_PCA9685()
 
     @property
     def is_connected(self) -> bool:
