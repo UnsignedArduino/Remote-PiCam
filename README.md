@@ -10,7 +10,7 @@ View and control a Raspberry Pi Camera mounted on a Waveshare pan/tilt HAT!
    [Waveshare Pan-Tilt HAT](https://www.waveshare.com/pan-tilt-hat.htm).
 4. `git clone` this repo and `cd` into it.  
 5. Optional: Create a virtual environment with `python3 -m venv .venv` and then
-   activate the virtual environment with`source .venv/bin/activate`. 
+   activate the virtual environment with `source .venv/bin/activate`. 
 6. Install dependencies with `pip3 install -r requirements.txt`. (You can find
    the list of dependencies in the 
    [`requirements.txt`](https://github.com/UnsignedArduino/Remote-PiCam/blob/main/requirements.txt) 
