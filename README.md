@@ -30,7 +30,7 @@ When you first run the script, a `settings.json` file should generate:
 {
     "camera": {
         "name": "picam",
-        "port": 4569
+        "port": 7896
     },
     "pan_tilt": {
         "enable": true
