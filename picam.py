@@ -2,6 +2,7 @@ import logging
 import struct
 from io import BytesIO
 from socket import socket
+from time import time as unix
 from typing import Union
 
 import networkzero as nw0
@@ -266,6 +267,7 @@ class NetworkPiCam:
             img_stream.seek(0)
             img_stream.truncate()
             img_pil.save(img_stream, "jpeg")
+            self._connection.write(struct.pack("<Q", round(unix() * 1000)))
             self._connection.write(struct.pack("<L", img_stream.tell()))
             self._connection.flush()
             img_stream.seek(0)
