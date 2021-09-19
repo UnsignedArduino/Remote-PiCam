@@ -231,6 +231,8 @@ class NetworkPiCam:
             service = nw0.advertise(self._cam_name, ttl_s=timeout)
         except nw0.core.SocketTimedOutError:
             return False
+        except nw0.core.SocketInterruptedError:
+            return False
         logger.debug(f"Opening socket on port {self._port}")
         address = nw0.wait_for_message_from(service)
         nw0.send_reply_to(service, self.settings)
